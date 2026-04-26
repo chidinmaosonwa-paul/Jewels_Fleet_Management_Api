@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.post('/book', authenticateJWT, validate(ticketBookSchema), bookTicket);
 router.put('/:id/cancel', authenticateJWT, cancelTicket);
-router.get('/', authenticateJWT, isAdmin, getTickets);
+router.get('/', authenticateJWT, getTickets);
 
 export default router;

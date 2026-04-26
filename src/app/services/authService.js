@@ -22,7 +22,7 @@ const createUser = async (userData) => {
 };
 
 const findUserByEmail = async (email) => {
-  return User.findOne({ email });
+  return User.findOne({ email }).select('+password');
 };
 
 export { generateToken, verifyPassword, createUser, findUserByEmail };
