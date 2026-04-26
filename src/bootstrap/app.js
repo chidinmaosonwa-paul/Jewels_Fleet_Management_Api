@@ -34,7 +34,9 @@ app.use('/api/journeys', journeyRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/financial', financialRoutes);
-
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 app.use(errorMiddleware);
 
 export default app;

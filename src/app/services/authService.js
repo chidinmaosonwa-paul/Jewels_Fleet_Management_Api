@@ -10,21 +10,13 @@ const generateToken = (user) => {
   );
 };
 
-const hashPassword = async (password) => {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
-};
-
 const verifyPassword = async (plainPassword, hashedPassword) => {
   return bcrypt.compare(plainPassword, hashedPassword);
 };
 
 const createUser = async (userData) => {
-  const hashedPassword = await hashPassword(userData.password);
-  const user = new User({
-    ...userData,
-    password: hashedPassword
-  });
+  //Password hashing is handled by the User model's pre-save hook
+  const user = new User(userData);
   await user.save();
   return user;
 };
@@ -33,4 +25,4 @@ const findUserByEmail = async (email) => {
   return User.findOne({ email });
 };
 
-export { generateToken, hashPassword, verifyPassword, createUser, findUserByEmail };
+export { generateToken, verifyPassword, createUser, findUserByEmail };

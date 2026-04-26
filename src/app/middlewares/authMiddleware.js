@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/user.js';
 
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -20,17 +19,19 @@ const authenticateJWT = (req, res, next) => {
   }
 };
 
-const isAdmin = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user.userId);
-    if (user && user.role === 'admin') {
-      next();
-    } else {
-      res.status(403).json({ message: 'Access denied. Admin privileges required.' });
-    }
-  } catch (error) {
-    next(error);
+//Role is embedded in the JWT payload so no DB round-trip is needed.
+const isAdmin = (req, res, next) => {
+  if (req.user?.role === 'admin') {
+    return next();
   }
+  res.status(403).json({ message: 'Access denied. Admin privileges required.' });
 };
 
-export { authenticateJWT, isAdmin };
+const isAdminOrDriver = (req, res, next) => {
+  if (req.user?.role === 'admin' || req.user?.role === 'driver') {
+    return next();
+  }
+  res.status(403).json({ message: 'Access denied. Admin or driver privileges required.' });
+};
+
+export { authenticateJWT, isAdmin, isAdminOrDriver };
