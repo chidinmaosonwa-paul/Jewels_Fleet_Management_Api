@@ -53,7 +53,9 @@ const updateJourney = async (req, res, next) => {
         return res.status(404).json({ message: 'New vehicle not found' });
       }
       const currentVehicle = await Vehicle.findById(journey.vehicleId);
-      const bookedSeats = currentVehicle.capacity - journey.availableSeats;
+      const bookedSeats = currentVehicle
+      ? currentVehicle.capacity - journey.availableSeats
+      : 0;
 
       if (newVehicle.capacity < bookedSeats) {
         return res.status(400).json({
