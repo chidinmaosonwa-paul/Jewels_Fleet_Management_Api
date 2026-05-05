@@ -14,8 +14,10 @@ const validate = (schema) => {
 // Auth
 
 const userSchema = Joi.object({
-  username: Joi.string().alphanum().min(3).max(30).required(),
+  firstName: Joi.string().min(2).max(50).required(),
+  lastName: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
+  phone: Joi.string().min(7).max(15).required(),
   password: Joi.string().min(6).max(50).required(),
   role: Joi.string().valid('admin', 'driver', 'user').default('user'),
 });

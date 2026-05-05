@@ -160,7 +160,7 @@ const generatePDF = (journey, tickets) => {
         doc.fillColor(COLORS.textMuted).fontSize(8).font('Helvetica')
            .text(String(index + 1), cols.no, rowY + 4, { width: 20 });
         doc.fillColor(COLORS.textDark)
-           .text(passenger?.username ?? '—', cols.name, rowY + 4, { width: 140 });
+           .text(`${passenger?.firstName ?? ''} ${passenger?.lastName ?? ''}`.trim() || '—', cols.name, rowY + 4, { width: 140 });
         doc.fillColor(COLORS.textMuted)
            .text(passenger?.email ?? '—', cols.email, rowY + 4, { width: 155 });
         doc.fillColor(COLORS.textDark)

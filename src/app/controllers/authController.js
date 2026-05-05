@@ -2,12 +2,12 @@ import { createUser, findUserByEmail, generateToken, verifyPassword } from '../s
 
 const register = async (req, res, next) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { firstName, lastName, email, phone, password, role } = req.body;
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
-    const user = await createUser({ username, email, password, role });
+    const user = await createUser({ firstName, lastName, email, phone, password, role });
     const token = generateToken(user);
     res.status(201).json({ message: 'User registered successfully', token });
   } catch (error) {
