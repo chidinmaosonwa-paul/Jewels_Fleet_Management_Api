@@ -9,6 +9,21 @@ const createJourney = async (req, res, next) => {
     if (!vehicle) {
       return res.status(404).json({ message: 'Vehicle not found' });
     }
+    //Check if vehicle is already scheduled for a journey on the same day
+    const departureDate = new Date(req.body.departureTime);
+    const startOfDay = new Date(departureDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(departureDate.setHours(23, 59, 59, 999));
+
+    const conflict = await Journey.findOne({
+      vehicleId,
+      status: { $in: ['scheduled', 'in_progress'] },
+      departureTime: { $gte: startOfDay, $lte: endOfDay },
+    });
+    if (conflict) {
+      return res.status(400).json({
+        message: 'This vehicle is already scheduled for a journey on this date',
+      });
+    }
     const journey = await Journey.create({
       vehicleId,
       destinationId,
@@ -54,8 +69,8 @@ const updateJourney = async (req, res, next) => {
       }
       const currentVehicle = await Vehicle.findById(journey.vehicleId);
       const bookedSeats = currentVehicle
-      ? currentVehicle.capacity - journey.availableSeats
-      : 0;
+        ? currentVehicle.capacity - journey.availableSeats
+        : 0;
 
       if (newVehicle.capacity < bookedSeats) {
         return res.status(400).json({

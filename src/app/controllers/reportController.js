@@ -50,7 +50,7 @@ const generatePassengerManifest = async (req, res, next) => {
       return res.status(404).json({ message: 'Journey not found' });
     }
 
-    const tickets = await Ticket.find({ journeyId }).populate('userId');
+    const tickets = await Ticket.find({ journeyId, status: 'booked' }).populate('userId');
 
     const pdfBuffer = await generatePDF(journey, tickets);
     res.setHeader('Content-Type', 'application/pdf');
