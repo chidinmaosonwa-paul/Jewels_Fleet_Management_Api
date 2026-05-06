@@ -74,7 +74,7 @@ const generatePDF = (journey, tickets) => {
 
     const summaryRows = [
       ['DESTINATION',    destination?.name       ?? '—',         'DISTANCE',    destination ? `${destination.distance} km` : '—'],
-      ['DEPARTURE',      formatDate(journey.departureTime),       'BASE FARE',   destination ? `₦${destination.baseFare.LocaleString()}` : '—'],
+      ['DEPARTURE',      formatDate(journey.departureTime),       'BASE FARE',   destination ? `₦${destination.baseFare.toLocaleString()}` : '—'],
       ['VEHICLE',        vehicle?.model          ?? '—',         'PLATE NO.',   vehicle?.plateNumber ?? '—'],
       ['JOURNEY STATUS', journey.status.replace('_', ' ').toUpperCase(), 'CAPACITY', `${totalSeats} seats`],
     ];
