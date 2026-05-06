@@ -1,6 +1,6 @@
 import PDFDocument from 'pdfkit';
 
-// Colour palette
+//Colour palette
 const COLORS = {
   primary:    '#1a1a2e',
   accent:     '#4361ee',
@@ -12,7 +12,7 @@ const COLORS = {
   cancelled:  '#c1121f',
 };
 
-// Helpers
+//Helpers
 
 const formatDate = (date) =>
   new Date(date).toLocaleString('en-GB', {
@@ -30,7 +30,7 @@ const drawHRule = (doc, y, color = COLORS.midGray) => {
     .restore();
 };
 
-// Main export
+//Main export
 
 const generatePDF = (journey, tickets) => {
   return new Promise((resolve, reject) => {
@@ -47,14 +47,14 @@ const generatePDF = (journey, tickets) => {
     const cancelled   = tickets.filter((t) => t.status === 'cancelled').length;
     const totalSeats  = vehicle?.capacity ?? '—';
 
-    // Header bar
+    //Header bar
     doc.rect(50, 45, pageWidth, 50).fill(COLORS.primary);
     doc.fillColor('#ffffff')
        .fontSize(20)
        .font('Helvetica-Bold')
        .text('PASSENGER MANIFEST', 60, 58, { width: pageWidth - 20 });
 
-    // Company sub-line
+    //Company sub-line
     doc.fillColor(COLORS.textMuted)
        .fontSize(9)
        .font('Helvetica')
@@ -64,7 +64,7 @@ const generatePDF = (journey, tickets) => {
     drawHRule(doc, doc.y);
     doc.moveDown(0.8);
 
-    // Journey summary block
+    //Journey summary block
     const summaryTop = doc.y;
     const col1 = 50;
     const col2 = 310;
@@ -74,7 +74,7 @@ const generatePDF = (journey, tickets) => {
 
     const summaryRows = [
       ['DESTINATION',    destination?.name       ?? '—',         'DISTANCE',    destination ? `${destination.distance} km` : '—'],
-      ['DEPARTURE',      formatDate(journey.departureTime),       'BASE FARE',   destination ? `₦${destination.baseFare.toFixed(2)}` : '—'],
+      ['DEPARTURE',      formatDate(journey.departureTime),       'BASE FARE',   destination ? `₦${destination.baseFare.LocaleString()}` : '—'],
       ['VEHICLE',        vehicle?.model          ?? '—',         'PLATE NO.',   vehicle?.plateNumber ?? '—'],
       ['JOURNEY STATUS', journey.status.replace('_', ' ').toUpperCase(), 'CAPACITY', `${totalSeats} seats`],
     ];
@@ -95,7 +95,7 @@ const generatePDF = (journey, tickets) => {
 
     doc.y = summaryTop + summaryRows.length * rowGap + 10;
 
-    // Seat summary pills
+    //Seat summary pills
     drawHRule(doc, doc.y);
     doc.moveDown(0.6);
 
@@ -127,50 +127,56 @@ const generatePDF = (journey, tickets) => {
     drawHRule(doc, doc.y);
     doc.moveDown(0.8);
 
-    // Passenger table
+// Passenger table
     if (tickets.length === 0) {
       doc.fillColor(COLORS.textMuted)
          .fontSize(11)
          .font('Helvetica')
          .text('No passengers booked for this journey.', { align: 'center' });
     } else {
-      //Table header
-      const cols = { no: 50, name: 75, email: 220, seat: 380, status: 440 };
+      const cols = { no: 50, name: 75, phone: 195, seat: 295, gender: 330, occupation: 380, nextOfKin: 455 };
       const headerY = doc.y;
 
       doc.rect(50, headerY, pageWidth, 18).fill(COLORS.accent);
-      doc.fillColor('#ffffff').fontSize(8).font('Helvetica-Bold');
-      doc.text('#',       cols.no,     headerY + 4, { width: 20 });
-      doc.text('NAME',    cols.name,   headerY + 4, { width: 140 });
-      doc.text('EMAIL',   cols.email,  headerY + 4, { width: 155 });
-      doc.text('SEAT',    cols.seat,   headerY + 4, { width: 55 });
-      doc.text('STATUS',  cols.status, headerY + 4, { width: 80 });
+      doc.fillColor('#ffffff').fontSize(7).font('Helvetica-Bold');
+      doc.text('#',           cols.no,         headerY + 5, { width: 20 });
+      doc.text('NAME',        cols.name,        headerY + 5, { width: 115 });
+      doc.text('PHONE',       cols.phone,       headerY + 5, { width: 95 });
+      doc.text('SEAT',        cols.seat,        headerY + 5, { width: 30 });
+      doc.text('GENDER',      cols.gender,      headerY + 5, { width: 45 });
+      doc.text('OCCUPATION',  cols.occupation,  headerY + 5, { width: 70 });
+      doc.text('NEXT OF KIN', cols.nextOfKin,   headerY + 5, { width: 90 });
 
-      //Rows
       let rowY = headerY + 20;
       tickets.forEach((ticket, index) => {
-        //Alternating row background
         if (index % 2 === 0) {
-          doc.rect(50, rowY, pageWidth, 18).fill(COLORS.lightGray);
+          doc.rect(50, rowY, pageWidth, 22).fill(COLORS.lightGray);
         }
 
         const statusColor = ticket.status === 'booked' ? COLORS.booked : COLORS.cancelled;
         const passenger   = ticket.userId;
+        const details     = ticket.passengerDetails;
 
-        doc.fillColor(COLORS.textMuted).fontSize(8).font('Helvetica')
+        doc.fillColor(COLORS.textMuted).fontSize(7).font('Helvetica')
            .text(String(index + 1), cols.no, rowY + 4, { width: 20 });
         doc.fillColor(COLORS.textDark)
-           .text(`${passenger?.firstName ?? ''} ${passenger?.lastName ?? ''}`.trim() || '—', cols.name, rowY + 4, { width: 140 });
+           .text(`${passenger?.firstName ?? ''} ${passenger?.lastName ?? ''}`.trim() || '—', cols.name, rowY + 4, { width: 115 });
         doc.fillColor(COLORS.textMuted)
-           .text(passenger?.email ?? '—', cols.email, rowY + 4, { width: 155 });
+           .text(passenger?.phone ?? '—', cols.phone, rowY + 4, { width: 95 });
         doc.fillColor(COLORS.textDark)
-           .text(String(ticket.seatNumber), cols.seat, rowY + 4, { width: 55, align: 'center' });
+           .text(String(ticket.seatNumber), cols.seat, rowY + 4, { width: 30, align: 'center' });
+        doc.fillColor(COLORS.textMuted)
+           .text(details?.gender ?? '—', cols.gender, rowY + 4, { width: 45 });
+        doc.fillColor(COLORS.textDark)
+           .text(details?.occupation ?? '—', cols.occupation, rowY + 4, { width: 70 });
         doc.fillColor(statusColor).font('Helvetica-Bold')
-           .text(ticket.status.toUpperCase(), cols.status, rowY + 4, { width: 80 });
+           .text(
+             details ? `${details.nextOfKinName} (${details.nextOfKinRelationship})` : '—',
+             cols.nextOfKin, rowY + 4, { width: 90 }
+           );
 
-        rowY += 20;
+        rowY += 24;
 
-        //Page break guard
         if (rowY > doc.page.height - 80) {
           doc.addPage();
           rowY = 50;
