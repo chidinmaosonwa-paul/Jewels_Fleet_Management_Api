@@ -11,7 +11,7 @@ const validate = (schema) => {
   };
 };
 
-// Auth
+//Auth
 
 const userSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required(),
@@ -27,7 +27,7 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-// Fleet
+//Fleet
 
 const vehicleSchema = Joi.object({
   plateNumber: Joi.string().required(),
@@ -85,6 +85,13 @@ const journeyUpdateSchema = Joi.object({
 
 const ticketBookSchema = Joi.object({
   journeyId: Joi.string().required(),
+  passengerDetails: Joi.object({
+    gender: Joi.string().required(),
+    occupation: Joi.string().required(),
+    nextOfKinName: Joi.string().required(),
+    nextOfKinPhone: Joi.string().required(),
+    nextOfKinRelationship: Joi.string().required(),
+  }).required(),
 });
 
 // Report

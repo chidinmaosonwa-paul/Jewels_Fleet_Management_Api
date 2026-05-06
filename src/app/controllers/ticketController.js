@@ -6,7 +6,7 @@ import { processPayment } from '../services/paymentService.js';
 
 const bookTicket = async (req, res, next) => {
   try {
-    const { journeyId } = req.body;
+    const { journeyId, passengerDetails } = req.body;
     const userId = req.user.userId;
 
     const journey = await Journey.findById(journeyId).populate('destinationId');
@@ -51,6 +51,7 @@ const bookTicket = async (req, res, next) => {
       seatNumber,
       status: 'booked',
       price,
+      passengerDetails,
     });
 
     await Journey.findByIdAndUpdate(journeyId, { $inc: { availableSeats: -1 } });
