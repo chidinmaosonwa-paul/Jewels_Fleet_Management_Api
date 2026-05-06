@@ -79,7 +79,7 @@ const cancelTicket = async (req, res, next) => {
     }
 
     ticket.status = 'cancelled';
-    await ticket.save();
+    await ticket.save({ validateBeforeSave: false });
 
     await Journey.findByIdAndUpdate(ticket.journeyId, { $inc: { availableSeats: 1 } });
     await Transaction.create({
