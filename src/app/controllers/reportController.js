@@ -31,7 +31,11 @@ const getReports = async (req, res, next) => {
   try {
     //Drivers see only their own reports while admins see everything
     const filter = req.user.role === 'driver' ? { driverId: req.user.userId } : {};
-    const reports = await Report.find(filter).populate('journeyId driverId');
+    const reports = await Report.find(filter).populate({
+        path: 'journeyId',
+        populate: { path: 'destinationId' },
+      })
+      .populate('driverId');
     res.json(reports);
   } catch (error) {
     next(error);

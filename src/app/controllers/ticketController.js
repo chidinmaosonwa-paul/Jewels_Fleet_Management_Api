@@ -99,7 +99,11 @@ const cancelTicket = async (req, res, next) => {
 const getTickets = async (req, res, next) => {
   try {
     const filter = req.user.role === 'admin' ? {} : { userId: req.user.userId };
-    const tickets = await Ticket.find(filter).populate('userId journeyId');
+    const tickets = await Ticket.find(filter) .populate('userId')
+      .populate({
+        path: 'journeyId',
+        populate: { path: 'destinationId' },
+      });
     res.json(tickets);
   } catch (error) {
     next(error);
