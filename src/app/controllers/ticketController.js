@@ -19,6 +19,17 @@ const bookTicket = async (req, res, next) => {
     if (journey.availableSeats === 0) {
       return res.status(400).json({ message: 'No available seats' });
     }
+    //Prevent duplicate bookings
+    const existingTicket = await Ticket.findOne({
+      userId,
+      journeyId,
+      status: 'booked',
+    });
+    if (existingTicket) {
+      return res.status(400).json({
+        message: 'You already have an active ticket for this journey',
+      });
+    }
 
     const vehicle = await Vehicle.findById(journey.vehicleId);
     if (!vehicle) {
