@@ -1,0 +1,608 @@
+openapi: 3.0.3
+info:
+  title: Jewel Fleet Management API
+  version: 1.0.0
+  description: A RESTful API for managing a travel company's fleet operations.
+
+servers:
+  - url: https://jewels-fleet-management-api.onrender.com
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account and returns a signed JWT token.
+      security: []
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - firstName
+                - lastName
+                - email
+                - phone
+                - password
+              properties:
+                firstName:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  example: Adaeze
+                lastName:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  example: Okonkwo
+                email:
+                  type: string
+                  format: email
+                  example: adaeze@example.com
+                phone:
+                  type: string
+                  minLength: 7
+                  maxLength: 15
+                  example: "08012345678"
+                password:
+                  type: string
+                  minLength: 6
+                  maxLength: 50
+                  example: securePass1
+                role:
+                  type: string
+                  enum:
+                    - admin
+                    - driver
+                    - user
+                  default: user
+      responses:
+        "201":
+          description: User registered successfully.
+        "400":
+          description: Validation error or email already in use.
+
+
+  /api/auth/login:
+    post:
+      summary: Logs a user in
+      description: Authenticates a user by email and password. Returns a signed JWT token on success. Use this token in the Authorization header for all protected endpoints.
+      security: []
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: adaeze@example.com
+                password:
+                  type: string
+                  minLength: 6
+                  maxLength: 50
+                  example: securePass1
+      responses:
+        "200":
+          description: User logged in successfully.
+        "401":
+          description: Invalid credentials
+
+
+  /api/fleet:
+    post:
+      summary: Create a vehicle
+      description: Creates a new vehicle.
+      tags:
+        - Fleet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - plateNumber
+                - model
+                - capacity
+                - status
+              properties:
+                plateNumber:
+                  type: string
+                model:
+                  type: string
+                capacity:
+                  type: integer
+                  minimum: 1
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - in_maintenance
+                    - retired
+                assignedDriverId:
+                  type: string
+      responses:
+        "201":
+          description: Vehicle created successfully.
+        "400":
+          description: Failed to create vehicle.
+
+    get:
+      summary: List all vehicles
+      description: Lists all vehicles.
+      tags:
+        - Fleet
+      responses:
+        "200":
+          description: All vehicles listed.
+
+
+  /api/fleet/{id}:
+    put:
+      summary: Update a vehicle
+      description: Update a vehicle with vehicle id.
+      tags:
+        - Fleet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the vehicle.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Vehicle updated.
+        "400":
+          description: Failed to update vehicle.
+        "404":
+          description: Vehicle not found.  
+
+
+    delete:
+      summary: Delete a vehicle
+      description: Deletes a vehicle with id.
+      tags:
+        - Fleet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the vehicle.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Vehicle deleted successfully.
+        "404":
+          description: Not found
+
+
+  /api/destinations:
+    post:
+      summary: Create a new destination
+      description: Creates a new destination.
+      tags:
+        - Destinations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - distance
+                - baseFare
+              properties:
+                name:
+                  type: string
+                distance:
+                  type: number
+                  minimum: 0
+                  exclusiveMinimum: true
+                baseFare:
+                  type: number
+                  minimum: 0
+                  exclusiveMinimum: true
+      responses:
+        "201":
+          description: Destination created successfully.
+        "400":
+          description: Failed to create destination.
+
+    get:
+      summary: List all destinations
+      description: Lists all destinations.
+      tags:
+        - Destinations
+      responses:
+        "200":
+          description: All destinations listed.
+
+
+  /api/destinations/{id}:
+    put:
+      summary: Update a destination
+      description: Update a destination with destination id.
+      tags:
+        - Destinations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the destination.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Destination updated.
+        "400":
+          description: Failed to update destination.
+        "404":
+          description: Destination not found.  
+
+
+    delete:
+      summary: Delete a destination
+      description: Deletes a destination with destination id.
+      tags:
+        - Destinations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the destination.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Destination deleted successfully.
+        "404":
+          description: Not found
+
+
+  /api/journeys:
+    post:
+      summary: Create a scheduled journey
+      description: Creates a scheduled journey.
+      tags:
+        - Journeys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - vehicleId
+                - destinationId
+                - departureTime
+              properties:
+                vehicleId:
+                  type: string
+                destinationId:
+                  type: string
+                departureTime:
+                  type: string
+                  format: date-time
+      responses:
+        "201":
+          description: Journey created successfully.
+        "400":
+          description: Failed to create journey.
+
+    get:
+      summary: Return all journeys
+      description: Returns all journeys.
+      tags:
+        - Journeys
+      responses:
+        "200":
+          description: All journeys listed.
+
+
+  /api/journeys/{id}:
+    put:
+      summary: Update a journey
+      description: Updates vehicle, destination, or departure time.
+      tags:
+        - Journeys
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the journey.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vehicleId:
+                  type: string
+                destinationId:
+                  type: string
+                departureTime:
+                  type: string
+                  format: date-time      
+      responses:
+        "200":
+          description: Journey updated.
+        "400":
+          description: Failed to update journey.
+        "404":
+          description: Journey not found.  
+
+
+    delete:
+      summary: Delete a journey
+      description: Blocked if active tickets exist
+      tags:
+        - Journeys
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the journey.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Journey deleted successfully.
+        "404":
+          description: Not found
+
+
+  /api/journeys/{id}/status:
+    put:
+      summary: Update journey status
+      description: Updates a journey's status
+      tags:
+        - Journeys
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the journey.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - scheduled
+                    - in_progress
+                    - completed
+                    - cancelled         
+      responses:
+        "200":
+          description: Journey updated.
+        "400":
+          description: Failed to update journey.
+        "404":
+          description: Journey not found.
+
+
+  /api/tickets/book:
+    post:
+      summary: Book ticket
+      description: Books a ticket.
+      tags:
+        - Tickets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - journeyId
+                - passengerDetails
+              properties:
+                journeyId:
+                  type: string
+                passengerDetails:
+                  type: object
+                  required:
+                    - gender
+                    - occupation
+                    - nextOfKinName
+                    - nextOfKinPhone
+                    - nextOfKinRelationship
+                  properties:  
+                    gender:
+                      type: string
+                    occupation:
+                      type: string
+                    nextOfKinName:
+                      type: string
+                    nextOfKinPhone:
+                      type: string
+                    nextOfKinRelationship:
+                      type: string
+      responses:
+        "201":
+          description: Ticket successfully booked.
+        "400":
+          description: Failed to book ticket.
+
+
+  /api/tickets:
+    get:
+      summary: Return all tickets
+      description: Returns all tickets.
+      tags:
+        - Tickets
+      responses:
+        "200":
+          description: All tickets listed.
+
+
+  /api/tickets/{id}/cancel:
+    put:
+      summary: Cancel ticket
+      description: Cancels a booked ticket.
+      tags:
+        - Tickets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the ticket.
+          schema:
+            type: string    
+      responses:
+        "200":
+          description: Ticket cancelled successfully.
+        "400":
+          description: Failed to cancel ticket.
+        "403":
+          description: Not authorized to cancel this ticket.   
+        "404":
+          description: Ticket not found.
+
+
+  /api/reports:
+    post:
+      summary: File a report
+      description: Files a report.
+      tags:
+        - Reports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - journeyId
+                - journeyDuration
+              properties:
+                journeyId:
+                  type: string
+                journeyDuration:
+                  type: number
+                  minimum: 0
+                  exclusiveMinimum: true
+                driverId:
+                  type: string
+                passengerFeedback:
+                  type: array
+                  items:
+                    type: string
+                issuesReported:
+                  type: string
+                fuelConsumption:
+                  type: number
+      responses:
+        "201":
+          description: Report filed successfully.
+        "400":
+          description: Failed to file report.
+
+
+    get:
+      summary: Get report
+      description: Gets all reports.
+      tags:
+        - Reports
+      responses:
+        "200":
+          description: Report retrieved.
+
+
+  /api/reports/manifest/{journeyId}:
+    get:
+      summary: Get/download manifest
+      description: Gets/downloads manifest using the journeyId.
+      tags:
+        - Reports
+      parameters:
+        - name: journeyId
+          in: path
+          required: true
+          description: The MongoDB ObjectId of the journey.
+          schema:
+            type: string     
+      responses:
+        "200":
+          description: PDF passenger manifest file.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+          
+  /api/financial/transactions:
+    get:
+      summary: Get financial transactions
+      description: Gets all financial transactions.
+      tags:
+        - Financial
+      responses:
+        "200":
+          description: Financial transactions retrieved.
+
+
+  /api/financial/report:
+    get:
+      summary: Get financial report
+      description: Gets financial report.
+      tags:
+        - Financial
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Start of the reporting period. ISO 8601 date.
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: End of the reporting period. ISO 8601 date.
+      responses:
+        "200":
+          description: Financial report retrieved.
+        "400":
+          description: Invalid or missing date parameters.    
+                                                      
