@@ -1,0 +1,27 @@
+{
+  "name": "Jewel Fleet Management API",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#1a56db",
+    "light": "#4f8ef7",
+    "dark": "#1e3a8a"
+  },
+  "topbarLinks": [
+    {
+      "name": "Live API",
+      "url": "https://jewels-fleet-management-api.onrender.com"
+    }
+  ],
+  "anchors": [],
+  "navigation": [
+    {
+      "group": "API Reference",
+      "pages": ["api-reference"]
+    }
+  ],
+  "openapi": "openapi.yaml"
+}
