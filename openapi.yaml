@@ -2,7 +2,34 @@ openapi: 3.0.3
 info:
   title: Jewel Fleet Management API
   version: 1.0.0
-  description: A RESTful API for managing a travel company's fleet operations.
+  description: |
+    A RESTful API for managing a travel company's fleet operations. Administrators manage vehicles, destinations, and journeys. Passengers browse schedules and book tickets. Drivers file post-journey reports.
+
+    ## Authentication
+
+    All endpoints except `POST /api/auth/register` and `POST /api/auth/login` require a valid JWT token in the `Authorization` header using the Bearer scheme.
+
+    `Authorization: Bearer <your_token>`
+
+    Get your token by calling the register or login endpoint first. Tokens expire after 24 hours.
+
+    ## Roles
+
+    | Role | Access |
+    |---|---|
+    | `admin` | Full access to all endpoints |
+    | `driver` | Submit and view their own journey reports only |
+    | `user` | Browse journeys, book and cancel their own tickets only |
+
+    ## Rate Limiting
+
+    All endpoints are rate-limited to 100 requests per 15-minute window per IP address. Exceeding this limit returns a `429 Too Many Requests` response.
+
+    ## Error Format
+
+    General errors return a `message` string `{ "message": "Journey not found" }`.
+
+    Validation errors return an `error` array, one entry per failed field `{ "error": ["\"email\" is required"] }`.
 
 servers:
   - url: https://jewels-fleet-management-api.onrender.com
