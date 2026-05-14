@@ -12,12 +12,11 @@ const validate = (schema) => {
 };
 
 //Auth
-
 const userSchema = Joi.object({
   firstName: Joi.string().min(2).max(50).required(),
   lastName: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
-  phone: Joi.string().min(7).max(15).required(),
+  phone: Joi.string().pattern(/^[0-9+\-\s]+$/).min(7).max(15).required(),
   password: Joi.string().min(6).max(50).required(),
   role: Joi.string().valid('admin', 'driver', 'user').default('user'),
 });
@@ -28,7 +27,6 @@ const loginSchema = Joi.object({
 });
 
 //Fleet
-
 const vehicleSchema = Joi.object({
   plateNumber: Joi.string().required(),
   model: Joi.string().required(),
@@ -47,7 +45,6 @@ const vehicleUpdateSchema = Joi.object({
 }).min(1);
 
 //Destination
-
 const destinationSchema = Joi.object({
   name: Joi.string().required(),
   distance: Joi.number().positive().required(),
@@ -61,7 +58,6 @@ const destinationUpdateSchema = Joi.object({
 }).min(1);
 
 // Journey
-
 const journeySchema = Joi.object({
   vehicleId: Joi.string().required(),
   destinationId: Joi.string().required(),
@@ -82,7 +78,6 @@ const journeyUpdateSchema = Joi.object({
 }).min(1);
 
 // Ticket
-
 const ticketBookSchema = Joi.object({
   journeyId: Joi.string().required(),
   passengerDetails: Joi.object({
@@ -95,7 +90,6 @@ const ticketBookSchema = Joi.object({
 });
 
 // Report
-
 const reportSchema = Joi.object({
   journeyId: Joi.string().required(),
   driverId: Joi.string().optional(),         // admin only; drivers get it from their token
