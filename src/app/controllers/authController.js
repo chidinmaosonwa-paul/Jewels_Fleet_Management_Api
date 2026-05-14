@@ -1,4 +1,5 @@
 import { createUser, findUserByEmail, generateToken, verifyPassword } from '../services/authService.js';
+import User from '../models/user.js';
 
 const register = async (req, res, next) => {
   try {
