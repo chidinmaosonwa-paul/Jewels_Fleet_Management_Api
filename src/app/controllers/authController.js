@@ -39,4 +39,27 @@ const getDrivers = async (req, res, next) => {
   }
 };
 
-export { register, login, getDrivers };
+const getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({ role: { $in: ['user', 'admin'] } });
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateUserRole = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    const user = await User.findByIdAndUpdate(id, { role }, { new: true });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ message: `User role updated to ${role} successfully`, user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { register, login, getDrivers, updateUserRole, getUsers };
