@@ -1,8 +1,7 @@
 import express from 'express';
-import { register, login, getDrivers } from '../app/controllers/authController.js';
+import { register, login, getDrivers, updateUserRole } from '../app/controllers/authController.js';
 import { validate, userSchema, loginSchema } from '../app/middlewares/validationMiddleware.js';
 import { authenticateJWT, isAdmin } from '../app/middlewares/authMiddleware.js';
-import { register, login, getDrivers, updateUserRole } from '../app/controllers/authController.js';
 
 const router = express.Router();
 
