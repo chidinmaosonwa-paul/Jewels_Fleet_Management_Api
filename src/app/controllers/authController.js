@@ -29,4 +29,13 @@ const login = async (req, res, next) => {
   }
 };
 
-export { register, login };
+const getDrivers = async (req, res, next) => {
+  try {
+    const drivers = await User.find({ role: 'driver' });
+    res.json(drivers);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { register, login, getDrivers };
