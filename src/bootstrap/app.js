@@ -14,6 +14,7 @@ import reportRoutes from '../routes/reportRoutes.js';
 import financialRoutes from '../routes/financialRoutes.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(cors({ origin: config.allowedOrigins }));
 app.use(helmet());
