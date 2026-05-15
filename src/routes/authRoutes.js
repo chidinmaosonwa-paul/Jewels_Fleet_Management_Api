@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, getDrivers, updateUserRole, getUsers, forgotPassword, resetPassword, sendVerification, verifyEmail } from '../app/controllers/authController.js';
+import { register, login, getDrivers, updateUserRole, getUsers, forgotPassword, resetPassword, sendVerification, verifyEmail, verifyAllUsers } from '../app/controllers/authController.js';
 import { validate, userSchema, loginSchema } from '../app/middlewares/validationMiddleware.js';
 import { authenticateJWT, isAdmin } from '../app/middlewares/authMiddleware.js';
 
