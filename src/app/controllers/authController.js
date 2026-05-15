@@ -43,11 +43,11 @@ const login = async (req, res, next) => {
     if (!user || !(await verifyPassword(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    if (!user.isVerified) {
-      return res
-        .status(403)
-        .json({ message: "Please verify your email before logging in" });
-    }
+    // if (!user.isVerified) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "Please verify your email before logging in" });
+    // }
     const token = generateToken(user);
     res.json({ message: "Login successful", token });
   } catch (error) {
