@@ -6,12 +6,12 @@ const sendPasswordResetEmail = async (email, resetToken, firstName) => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   await resend.emails.send({
-    from: 'Jewel Fleet <onboarding@resend.dev>',
+    from: 'Safaraa <onboarding@resend.dev>',
     to: email,
     subject: 'Reset Your Password',
     html: `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
-        <h2 style="color: #1e88e5;">Jewel Fleet</h2>
+        <h2 style="color: #1e88e5;">Safaraa</h2>
         <p>Hi ${firstName},</p>
         <p>You requested a password reset. Click the button below to set a new password:</p>
         <a href="${resetUrl}" style="display: inline-block; padding: 0.8rem 1.5rem; background-color: #1e88e5; color: white; border-radius: 8px; text-decoration: none; margin: 1rem 0;">
@@ -27,7 +27,7 @@ const sendVerificationEmail = async (email, verificationToken, firstName) => {
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   await resend.emails.send({
-    from: 'Jewel Fleet <onboarding@resend.dev>',
+    from: 'Safaraa <onboarding@resend.dev>',
     to: email,
     subject: 'Verify Your Email Address',
     html: `
