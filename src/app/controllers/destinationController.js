@@ -1,4 +1,4 @@
-import Destination from '../models/destination.js';
+import Destination from "../models/destination.js";
 
 const createDestination = async (req, res, next) => {
   try {
@@ -12,8 +12,22 @@ const createDestination = async (req, res, next) => {
 
 const getDestinations = async (req, res, next) => {
   try {
-    const destinations = await Destination.find();
-    res.json(destinations);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Destination.countDocuments();
+    const destinations = await Destination.find().skip(skip).limit(limit);
+
+    res.json({
+      data: destinations,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -22,9 +36,13 @@ const getDestinations = async (req, res, next) => {
 const updateDestination = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updatedDestination = await Destination.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedDestination = await Destination.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true },
+    );
     if (!updatedDestination) {
-      return res.status(404).json({ message: 'Destination not found' });
+      return res.status(404).json({ message: "Destination not found" });
     }
     res.json(updatedDestination);
   } catch (error) {
@@ -37,12 +55,17 @@ const deleteDestination = async (req, res, next) => {
     const { id } = req.params;
     const deletedDestination = await Destination.findByIdAndDelete(id);
     if (!deletedDestination) {
-      return res.status(404).json({ message: 'Destination not found' });
+      return res.status(404).json({ message: "Destination not found" });
     }
-    res.json({ message: 'Destination deleted successfully' });
+    res.json({ message: "Destination deleted successfully" });
   } catch (error) {
     next(error);
   }
 };
 
-export { createDestination, getDestinations, updateDestination, deleteDestination };
+export {
+  createDestination,
+  getDestinations,
+  updateDestination,
+  deleteDestination,
+};

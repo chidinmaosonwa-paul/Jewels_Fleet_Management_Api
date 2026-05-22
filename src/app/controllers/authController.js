@@ -57,8 +57,21 @@ const login = async (req, res, next) => {
 
 const getDrivers = async (req, res, next) => {
   try {
-    const drivers = await User.find({ role: "driver" });
-    res.json(drivers);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await User.countDocuments({ role: "driver" });
+    const drivers = await User.find({ role: "driver" }).skip(skip).limit(limit);
+    res.json({
+      data: drivers,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -66,8 +79,21 @@ const getDrivers = async (req, res, next) => {
 
 const getUsers = async (req, res, next) => {
   try {
-    const users = await User.find;
-    res.json(users);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await User.countDocuments();
+    const users = await User.find().skip(skip).limit(limit);
+    res.json({
+      data: users,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }

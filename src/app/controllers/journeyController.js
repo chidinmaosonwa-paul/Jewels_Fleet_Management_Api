@@ -1,13 +1,13 @@
-import Journey from '../models/journey.js';
-import Vehicle from '../models/vehicle.js';
-import Ticket from '../models/ticket.js';
+import Journey from "../models/journey.js";
+import Vehicle from "../models/vehicle.js";
+import Ticket from "../models/ticket.js";
 
 const createJourney = async (req, res, next) => {
   try {
     const { vehicleId, destinationId, departureTime } = req.body;
     const vehicle = await Vehicle.findById(vehicleId);
     if (!vehicle) {
-      return res.status(404).json({ message: 'Vehicle not found' });
+      return res.status(404).json({ message: "Vehicle not found" });
     }
     //Check if vehicle is already scheduled for a journey on the same day
     const departureDate = new Date(req.body.departureTime);
@@ -16,12 +16,12 @@ const createJourney = async (req, res, next) => {
 
     const conflict = await Journey.findOne({
       vehicleId,
-      status: { $in: ['scheduled', 'in_progress'] },
+      status: { $in: ["scheduled", "in_progress"] },
       departureTime: { $gte: startOfDay, $lte: endOfDay },
     });
     if (conflict) {
       return res.status(400).json({
-        message: 'This vehicle is already scheduled for a journey on this date',
+        message: "This vehicle is already scheduled for a journey on this date",
       });
     }
     const journey = await Journey.create({
@@ -29,7 +29,7 @@ const createJourney = async (req, res, next) => {
       destinationId,
       departureTime,
       availableSeats: vehicle.capacity,
-      status: 'scheduled',
+      status: "scheduled",
     });
     res.status(201).json(journey);
   } catch (error) {
@@ -39,8 +39,25 @@ const createJourney = async (req, res, next) => {
 
 const getJourneys = async (req, res, next) => {
   try {
-    const journeys = await Journey.find().populate('vehicleId destinationId');
-    res.json(journeys);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Journey.countDocuments();
+    const journeys = await Journey.find()
+      .populate("vehicleId destinationId")
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: journeys,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -53,10 +70,12 @@ const updateJourney = async (req, res, next) => {
 
     const journey = await Journey.findById(id);
     if (!journey) {
-      return res.status(404).json({ message: 'Journey not found' });
+      return res.status(404).json({ message: "Journey not found" });
     }
-    if (journey.status !== 'scheduled') {
-      return res.status(400).json({ message: 'Only scheduled journeys can be updated' });
+    if (journey.status !== "scheduled") {
+      return res
+        .status(400)
+        .json({ message: "Only scheduled journeys can be updated" });
     }
 
     const updates = {};
@@ -65,7 +84,7 @@ const updateJourney = async (req, res, next) => {
     if (vehicleId && vehicleId !== journey.vehicleId.toString()) {
       const newVehicle = await Vehicle.findById(vehicleId);
       if (!newVehicle) {
-        return res.status(404).json({ message: 'New vehicle not found' });
+        return res.status(404).json({ message: "New vehicle not found" });
       }
       const currentVehicle = await Vehicle.findById(journey.vehicleId);
       const bookedSeats = currentVehicle
@@ -84,8 +103,9 @@ const updateJourney = async (req, res, next) => {
     if (destinationId) updates.destinationId = destinationId;
     if (departureTime) updates.departureTime = departureTime;
 
-    const updatedJourney = await Journey.findByIdAndUpdate(id, updates, { new: true })
-      .populate('vehicleId destinationId');
+    const updatedJourney = await Journey.findByIdAndUpdate(id, updates, {
+      new: true,
+    }).populate("vehicleId destinationId");
 
     res.json(updatedJourney);
   } catch (error) {
@@ -97,9 +117,13 @@ const updateJourneyStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const updatedJourney = await Journey.findByIdAndUpdate(id, { status }, { new: true });
+    const updatedJourney = await Journey.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true },
+    );
     if (!updatedJourney) {
-      return res.status(404).json({ message: 'Journey not found' });
+      return res.status(404).json({ message: "Journey not found" });
     }
     res.json(updatedJourney);
   } catch (error) {
@@ -112,16 +136,19 @@ const deleteJourney = async (req, res, next) => {
     const { id } = req.params;
     const journey = await Journey.findById(id);
     if (!journey) {
-      return res.status(404).json({ message: 'Journey not found' });
+      return res.status(404).json({ message: "Journey not found" });
     }
-    if (['in_progress', 'completed'].includes(journey.status)) {
+    if (["in_progress", "completed"].includes(journey.status)) {
       return res.status(400).json({
         message: `Cannot delete a journey with status '${journey.status}'`,
       });
     }
 
     //Block deletion if any active (non-cancelled) tickets exist
-    const activeTickets = await Ticket.countDocuments({ journeyId: id, status: 'booked' });
+    const activeTickets = await Ticket.countDocuments({
+      journeyId: id,
+      status: "booked",
+    });
     if (activeTickets > 0) {
       return res.status(400).json({
         message: `Cannot delete journey — ${activeTickets} active ticket(s) exist. Cancel them first.`,
@@ -129,10 +156,16 @@ const deleteJourney = async (req, res, next) => {
     }
 
     await Journey.findByIdAndDelete(id);
-    res.json({ message: 'Journey deleted successfully' });
+    res.json({ message: "Journey deleted successfully" });
   } catch (error) {
     next(error);
   }
 };
 
-export { createJourney, getJourneys, updateJourney, updateJourneyStatus, deleteJourney };
+export {
+  createJourney,
+  getJourneys,
+  updateJourney,
+  updateJourneyStatus,
+  deleteJourney,
+};

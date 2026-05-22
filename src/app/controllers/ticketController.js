@@ -1,45 +1,47 @@
-import Ticket from '../models/ticket.js';
-import Journey from '../models/journey.js';
-import Vehicle from '../models/vehicle.js';
-import Transaction from '../models/transaction.js';
-import { processPayment } from '../services/paymentService.js';
+import Ticket from "../models/ticket.js";
+import Journey from "../models/journey.js";
+import Vehicle from "../models/vehicle.js";
+import Transaction from "../models/transaction.js";
+import { processPayment } from "../services/paymentService.js";
 
 const bookTicket = async (req, res, next) => {
   try {
     const { journeyId, passengerDetails } = req.body;
     const userId = req.user.userId;
 
-    const journey = await Journey.findById(journeyId).populate('destinationId');
+    const journey = await Journey.findById(journeyId).populate("destinationId");
     if (!journey) {
-      return res.status(404).json({ message: 'Journey not found' });
+      return res.status(404).json({ message: "Journey not found" });
     }
-    if (journey.status !== 'scheduled') {
-      return res.status(400).json({ message: 'Journey is not available for booking' });
+    if (journey.status !== "scheduled") {
+      return res
+        .status(400)
+        .json({ message: "Journey is not available for booking" });
     }
     if (journey.availableSeats === 0) {
-      return res.status(400).json({ message: 'No available seats' });
+      return res.status(400).json({ message: "No available seats" });
     }
     //Prevent duplicate bookings
     const existingTicket = await Ticket.findOne({
       userId,
       journeyId,
-      status: 'booked',
+      status: "booked",
     });
     if (existingTicket) {
       return res.status(400).json({
-        message: 'You already have an active ticket for this journey',
+        message: "You already have an active ticket for this journey",
       });
     }
 
     const vehicle = await Vehicle.findById(journey.vehicleId);
     if (!vehicle) {
-      return res.status(404).json({ message: 'Vehicle not found' });
+      return res.status(404).json({ message: "Vehicle not found" });
     }
 
     const price = journey.destinationId.baseFare;
     const paymentResult = await processPayment(userId, price);
     if (!paymentResult.success) {
-      return res.status(400).json({ message: 'Payment failed' });
+      return res.status(400).json({ message: "Payment failed" });
     }
 
     //Seat number = total capacity minus remaining seats + 1
@@ -49,13 +51,20 @@ const bookTicket = async (req, res, next) => {
       userId,
       journeyId,
       seatNumber,
-      status: 'booked',
+      status: "booked",
       price,
       passengerDetails,
     });
 
-    await Journey.findByIdAndUpdate(journeyId, { $inc: { availableSeats: -1 } });
-    await Transaction.create({ userId, ticketId: ticket._id, amount: price, type: 'purchase' });
+    await Journey.findByIdAndUpdate(journeyId, {
+      $inc: { availableSeats: -1 },
+    });
+    await Transaction.create({
+      userId,
+      ticketId: ticket._id,
+      amount: price,
+      type: "purchase",
+    });
 
     res.status(201).json(ticket);
   } catch (error) {
@@ -68,28 +77,35 @@ const cancelTicket = async (req, res, next) => {
     const { id } = req.params;
     const ticket = await Ticket.findById(id);
     if (!ticket) {
-      return res.status(404).json({ message: 'Ticket not found' });
+      return res.status(404).json({ message: "Ticket not found" });
     }
     //Only the ticket owner or an admin can cancel
-    if (ticket.userId.toString() !== req.user.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized to cancel this ticket' });
+    if (
+      ticket.userId.toString() !== req.user.userId &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to cancel this ticket" });
     }
-    if (ticket.status === 'cancelled') {
-      return res.status(400).json({ message: 'Ticket already cancelled' });
+    if (ticket.status === "cancelled") {
+      return res.status(400).json({ message: "Ticket already cancelled" });
     }
 
-    ticket.status = 'cancelled';
+    ticket.status = "cancelled";
     await ticket.save({ validateBeforeSave: false });
 
-    await Journey.findByIdAndUpdate(ticket.journeyId, { $inc: { availableSeats: 1 } });
+    await Journey.findByIdAndUpdate(ticket.journeyId, {
+      $inc: { availableSeats: 1 },
+    });
     await Transaction.create({
       userId: ticket.userId,
       ticketId: ticket._id,
       amount: ticket.price,
-      type: 'refund',
+      type: "refund",
     });
 
-    res.json({ message: 'Ticket cancelled successfully' });
+    res.json({ message: "Ticket cancelled successfully" });
   } catch (error) {
     next(error);
   }
@@ -98,13 +114,30 @@ const cancelTicket = async (req, res, next) => {
 //Admin: get all tickets. User: get only their own tickets.
 const getTickets = async (req, res, next) => {
   try {
-    const filter = req.user.role === 'admin' ? {} : { userId: req.user.userId };
-    const tickets = await Ticket.find(filter) .populate('userId')
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = req.user.role === "admin" ? {} : { userId: req.user.userId };
+    const total = await Ticket.countDocuments(filter);
+    const tickets = await Ticket.find(filter)
+      .populate("userId")
       .populate({
-        path: 'journeyId',
-        populate: { path: 'destinationId' },
-      });
-    res.json(tickets);
+        path: "journeyId",
+        populate: { path: "destinationId" },
+      })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: tickets,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
