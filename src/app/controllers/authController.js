@@ -66,7 +66,7 @@ const getDrivers = async (req, res, next) => {
 
 const getUsers = async (req, res, next) => {
   try {
-    const users = await User.find({ role: { $in: ["user", "admin"] } });
+    const users = await User.find;
     res.json(users);
   } catch (error) {
     next(error);
@@ -77,6 +77,12 @@ const updateUserRole = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
+
+    if (id === req.user.userId) {
+      return res
+        .status(400)
+        .json({ message: "You cannot change your own role" });
+    }
     const user = await User.findByIdAndUpdate(id, { role }, { new: true });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
